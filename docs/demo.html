@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>麦麦周边雷达 · 真实运行输出</title>
+<style>
+  :root{
+    --bg:#f7f7f5;
+    --card:#ffffff;
+    --ink:#1a1a1a;
+    --ink-2:#5c5c5c;
+    --ink-3:#8a8a8a;
+    --line:#e3e3e0;
+    --accent:#c8102e;
+    --accent-soft:#fdecef;
+    --ok:#0f7b3f;
+    --warn:#b8860b;
+    --term-bg:#1c1c1e;
+    --term-ink:#e8e8e6;
+    --term-dim:#8e8e93;
+    --term-green:#4ec97a;
+    --term-yellow:#ffd479;
+    --term-red:#ff8b7b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    line-height:1.6;
+    padding:40px 24px 64px;
+  }
+  .wrap{max-width:920px;margin:0 auto}
+
+  header{margin-bottom:28px}
+  .eyebrow{
+    font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent);font-weight:600;margin-bottom:8px;
+  }
+  h1{font-size:28px;font-weight:700;letter-spacing:-.01em;margin-bottom:10px}
+  .sub{font-size:14px;color:var(--ink-2);max-width:660px}
+  .meta{
+    margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;
+  }
+  .chip{
+    font-size:12px;padding:4px 10px;border-radius:999px;
+    background:var(--card);border:1px solid var(--line);color:var(--ink-2);
+  }
+  .chip.live{border-color:#bfe3cb;background:#eef8f1;color:var(--ok);font-weight:600}
+
+  /* 终端窗口 */
+  .term{
+    background:var(--term-bg);border-radius:12px;overflow:hidden;
+    box-shadow:0 8px 28px rgba(0,0,0,.16);margin:24px 0 28px;
+  }
+  .term-bar{
+    display:flex;align-items:center;gap:7px;padding:11px 14px;
+    background:#2a2a2c;border-bottom:1px solid #3a3a3c;
+  }
+  .dot{width:11px;height:11px;border-radius:50%}
+  .d1{background:#ff5f57}.d2{background:#febc2e}.d3{background:#28c840}
+  .term-title{
+    margin-left:8px;font-size:12px;color:var(--term-dim);
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  .term-body{
+    padding:16px 18px 20px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:12.5px;line-height:1.75;color:var(--term-ink);
+    white-space:pre-wrap;word-break:break-word;
+  }
+  .prompt{color:var(--term-green)}
+  .cmd{color:#fff}
+  .dim{color:var(--term-dim)}
+  .y{color:var(--term-yellow)}
+  .r{color:var(--term-red)}
+
+  h2{
+    font-size:17px;font-weight:700;margin:34px 0 14px;
+    padding-left:11px;border-left:3px solid var(--accent);
+  }
+  .card{
+    background:var(--card);border:1px solid var(--line);
+    border-radius:10px;padding:18px 20px;margin-bottom:16px;
+  }
+  .card-hd{
+    font-size:13px;font-weight:700;margin-bottom:12px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .badge{
+    font-size:11px;font-weight:500;padding:2px 8px;border-radius:5px;
+    background:var(--accent-soft);color:var(--accent);
+  }
+
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th,td{padding:8px 6px;text-align:left;border-bottom:1px solid var(--line)}
+  th{
+    font-weight:600;color:var(--ink-2);font-size:11.5px;
+    border-bottom:1.5px solid var(--line);
+  }
+  td.c,th.c{text-align:center}
+  .yes{color:var(--ok);font-weight:700}
+  .no{color:#cfcfcb}
+  .price{font-variant-numeric:tabular-nums;color:var(--ink-2)}
+  .exclusive{color:var(--accent);font-weight:600}
+  tr.excl td{background:#fffafb}
+
+  .note{
+    font-size:12px;color:var(--ink-2);background:#fbfbf9;
+    border-left:2px solid var(--line);padding:8px 12px;margin-top:12px;
+  }
+  .warn{
+    background:#fff9ec;border:1px solid #f0e0bb;border-radius:10px;
+    padding:14px 16px;font-size:12.5px;color:#6b5416;
+  }
+  .warn b{color:#8a6a10}
+  .warn table{margin-top:10px;font-size:12px}
+  .warn th{color:#8a6a10;border-bottom-color:#f0e0bb}
+  .warn td{border-bottom-color:#f5ebd8}
+  .expired{color:var(--accent);font-weight:600}
+
+  /* 分类藏匿图 */
+  .cats{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+  .cat{
+    font-size:12px;padding:6px 11px;border-radius:7px;
+    background:#f2f2ef;border:1px solid var(--line);color:var(--ink-2);
+  }
+  .cat b{color:var(--ink)}
+  .cat.hidden{background:var(--accent-soft);border-color:#f5cdd5;color:var(--accent)}
+
+  .stats{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0 4px;
+  }
+  .stat{
+    background:var(--card);border:1px solid var(--line);
+    border-radius:10px;padding:14px 16px;
+  }
+  .stat .n{font-size:24px;font-weight:700;line-height:1.1}
+  .stat .l{font-size:11.5px;color:var(--ink-3);margin-top:3px}
+  .stat.red .n{color:var(--accent)}
+
+  footer{
+    margin-top:34px;padding-top:16px;border-top:1px solid var(--line);
+    font-size:11.5px;color:var(--ink-3);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">MCD MCP · 真实运行结果</div>
+    <h1>麦麦周边雷达</h1>
+    <p class="sub">
+      麦当劳菜单里没有「周边」分类，联名棒球帽、毛绒周边、限定饼干全混在汉堡薯条之间。
+      指定城市后自动取附近门店、逐店拉取在售菜单、抽出周边，输出「哪款周边 · 在哪些店 · 多少钱」的分布矩阵。
+    </p>
+    <div class="meta">
+      <span class="chip live">● 实时调用麦当劳中国 MCP</span>
+      <span class="chip">2026-10-09 18:03 运行</span>
+      <span class="chip">零第三方依赖</span>
+    </div>
+  </header>
+
+  <div class="term">
+    <div class="term-bar">
+      <span class="dot d1"></span><span class="dot d2"></span><span class="dot d3"></span>
+      <span class="term-title">zsh — merch_radar</span>
+    </div>
+    <div class="term-body"><span class="prompt">❯</span> <span class="cmd">python -m merch_radar.cli --points</span>
+<span class="dim">扫描 上海市 南京东路 ...</span>
+<span class="dim">扫描 北京市 王府井 ...</span>
+<span class="dim">扫描 广州市 天河 ...</span>
+<span class="dim">扫描积分限定周边 ...</span>
+
+<span class="y"># 📦 麦麦周边雷达</span>
+
+<span class="dim">&gt;</span> 扫描 <span class="cmd">3</span> 座城市 / <span class="cmd">9/9</span> 家门店，共发现 <span class="cmd">7</span> 款在售周边。
+
+<span class="y">## 上海市</span>  <span class="dim">门店 3/3 · 周边 3 款</span>
+
+| 周边                        | 价格  | 悦荟广场 | 恒基名人 | 福州路书城 |
+|-----------------------------|------:|:------:|:------:|:------:|
+| “葱不求人“按摩捶痒痒挠        | ¥14.9 |   ✅   |   ✅   |   ✅   |
+| 麦当劳联名复古棒球帽          | ¥34.9 |   ✅   |   ✅   |   ✅   |
+| 泷泷星愿四件套（含周边套餐）   | ¥39.9 |   ✅   |   <span class="dim">—</span>   |   <span class="dim">—</span>   |
+
+<span class="y">**门店差异款**</span>（并非所有门店都有）：
+  · 泷泷星愿四件套 — 仅在 麦当劳上海黄浦悦荟广场餐厅
+
+<span class="dim">积分限定周边 · 服务器时间 2026-10-09 18:03</span>
+| 商品                        | 积分  | 兑换窗口                     | 状态 |
+|-----------------------------|------:|------------------------------|:---:|
+| 酸黄瓜吧唧礼盒               |  800  | 08-14 14:00 → 08-14 23:59    | <span class="r">已过期</span> |
+| 罗技键鼠套装                 | 6666  | 08-21 14:00 → 08-21 23:59    | <span class="r">已过期</span> |
+| Nike Book 2 联名款          | 8888  | 06-05 14:00 → 06-05 16:00    | <span class="r">已过期</span> |
+
+<span class="r">⚠️</span> 有 <span class="cmd">3</span> 件商品接口标记 status=2（上架），但按兑换窗口比对已过期。
+   列表的 status 字段不可信，本项目以 upTime/downTime 与服务器时间比对为准。</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="n">9/9</div><div class="l">门店扫描成功</div></div>
+    <div class="stat"><div class="n">7</div><div class="l">在售周边 SKU</div></div>
+    <div class="stat red"><div class="n">4</div><div class="l">门店差异款</div></div>
+    <div class="stat"><div class="n">3</div><div class="l">过期数据拦截</div></div>
+  </div>
+
+  <h2>上海市 · 3 家门店</h2>
+  <div class="card">
+    <div class="card-hd">在售周边分布 <span class="badge">3 款 · 1 款差异</span></div>
+    <table>
+      <thead><tr>
+        <th>周边</th><th class="c">价格</th>
+        <th class="c">黄浦悦荟广场</th><th class="c">恒基名人</th><th class="c">福州路书城</th>
+      </tr></thead>
+      <tbody>
+        <tr><td>“葱不求人“按摩捶痒痒挠</td><td class="c price">¥14.9</td><td class="c yes">✅</td><td class="c yes">✅</td><td class="c yes">✅</td></tr>
+        <tr><td>麦当劳联名复古棒球帽</td><td class="c price">¥34.9</td><td class="c yes">✅</td><td class="c yes">✅</td><td class="c yes">✅</td></tr>
+        <tr class="excl"><td>泷泷星愿四件套 <span class="exclusive">· 独享</span></td><td class="c price">¥39.9</td><td class="c yes">✅</td><td class="c no">—</td><td class="c no">—</td></tr>
+      </tbody>
+    </table>
+    <div class="note">泷泷星愿四件套仅在黄浦悦荟广场餐厅在售。</div>
+  </div>
+
+  <h2>北京市 · 3 家门店</h2>
+  <div class="card">
+    <div class="card-hd">在售周边分布 <span class="badge">6 款 · 4 款差异</span></div>
+    <table>
+      <thead><tr>
+        <th>周边</th><th class="c">价格</th>
+        <th class="c">新东安二号</th><th class="c">王府井东街</th><th class="c">灯市口</th>
+      </tr></thead>
+      <tbody>
+        <tr><td>“葱不求人“按摩捶痒痒挠</td><td class="c price">¥14.9</td><td class="c yes">✅</td><td class="c yes">✅</td><td class="c yes">✅</td></tr>
+        <tr><td>麦当劳联名复古棒球帽</td><td class="c price">¥34.9</td><td class="c yes">✅</td><td class="c yes">✅</td><td class="c yes">✅</td></tr>
+        <tr class="excl"><td>麦当劳素龙限定饼干 <span class="exclusive">· 独享</span></td><td class="c price">¥2.0</td><td class="c yes">✅</td><td class="c yes">✅</td><td class="c no">—</td></tr>
+        <tr class="excl"><td>“泷”运当头四件套 <span class="exclusive">· 独享</span></td><td class="c price">¥91.7</td><td class="c yes">✅</td><td class="c yes">✅</td><td class="c no">—</td></tr>
+        <tr class="excl"><td>如意百宝袋 <span class="exclusive">· 独享</span></td><td class="c price">¥12.0</td><td class="c no">—</td><td class="c yes">✅</td><td class="c no">—</td></tr>
+        <tr class="excl"><td>泷泷星愿四件套 <span class="exclusive">· 独享</span></td><td class="c price">¥39.9</td><td class="c yes">✅</td><td class="c no">—</td><td class="c no">—</td></tr>
+      </tbody>
+    </table>
+    <div class="note">6 款中有 4 款是门店差异款——同一座城市里，换个门店就买不到。</div>
+  </div>
+
+  <h2>广州市 · 3 家门店</h2>
+  <div class="card">
+    <div class="card-hd">在售周边分布 <span class="badge">6 款 · 3 款差异</span></div>
+    <table>
+      <thead><tr>
+        <th>周边</th><th class="c">价格</th>
+        <th class="c">天源路</th><th class="c">长兴路</th><th class="c">南方医科大</th>
+      </tr></thead>
+      <tbody>
+        <tr><td>“葱不求人“按摩捶痒痒挠</td><td class="c price">¥14.9</td><td class="c yes">✅</td><td class="c yes">✅</td><td class="c yes">✅</td></tr>
+        <tr><td>麦当劳联名复古棒球帽</td><td class="c price">¥34.9</td><td class="c yes">✅</td><td class="c yes">✅</td><td class="c yes">✅</td></tr>
+        <tr><td>“泷”运当头四件套</td><td class="c price">¥91.7</td><td class="c yes">✅</td><td class="c yes">✅</td><td class="c yes">✅</td></tr>
+        <tr class="excl"><td>如意百宝袋 <span class="exclusive">· 独享</span></td><td class="c price">¥12.0</td><td class="c yes">✅</td><td class="c yes">✅</td><td class="c no">—</td></tr>
+        <tr class="excl"><td>薯条脆卜卜毛绒周边 <span class="exclusive">· 广深独有</span></td><td class="c price">¥24.9</td><td class="c yes">✅</td><td class="c yes">✅</td><td class="c no">—</td></tr>
+        <tr class="excl"><td>泷泷星愿四件套 <span class="exclusive">· 独享</span></td><td class="c price">¥39.9</td><td class="c yes">✅</td><td class="c no">—</td><td class="c yes">✅</td></tr>
+      </tbody>
+    </table>
+    <div class="note">薯条脆卜卜毛绒周边在上海、北京的门店菜单里完全不存在。</div>
+  </div>
+
+  <h2>它们藏在哪儿：没有任何一个分类叫「周边」</h2>
+  <div class="card">
+    <div class="cats">
+      <span class="cat hidden">人气热卖 → <b>复古棒球帽</b></span>
+      <span class="cat hidden">小食甜品/其他 → <b>按摩捶、饼干、毛绒周边</b></span>
+      <span class="cat hidden">精选单人餐 → <b>“泷”运当头四件套</b></span>
+      <span class="cat hidden">开心乐园 → <b>如意百宝袋</b></span>
+    </div>
+    <div class="note">
+      7 款周边散落在 4 个完全不同的食物分类里，官方菜单没有「周边」入口。
+      想知道哪家店有什么，只能把整份菜单逐店翻一遍——这正是本项目要解决的问题。
+    </div>
+  </div>
+
+  <h2>积分限定周边：status=2 不可信</h2>
+  <div class="warn">
+    <b>⚠️ 接口标记的 status=2（上架）是过期字段，不能用它判断能否兑换。</b>
+    <table>
+      <thead><tr><th>商品</th><th class="c">积分</th><th>兑换窗口</th><th class="c">真实状态</th></tr></thead>
+      <tbody>
+        <tr><td>酸黄瓜吧唧礼盒</td><td class="c">800</td><td>2026-08-14 14:00 → 23:59</td><td class="c expired">已过期</td></tr>
+        <tr><td>罗技键鼠套装</td><td class="c">6666</td><td>2026-08-21 14:00 → 23:59</td><td class="c expired">已过期</td></tr>
+        <tr><td>Nike Book 2 麦当劳特别联名款</td><td class="c">8888</td><td>2026-06-05 14:00 → 16:00</td><td class="c expired">已过期</td></tr>
+      </tbody>
+    </table>
+    <div class="note">
+      三件商品的 status 全部为 2（上架），但兑换窗口早已结束。本项目用 upTime/downTime
+      与服务器时间比对，再用 mall-product-detail 二次校验，剔除这类「假上架」商品。
+    </div>
+  </div>
+
+  <footer>
+    数据来源：麦当劳中国 MCP · 全程只读，不调用任何下单或兑换接口 · 本作品非麦当劳官方产品
+  </footer>
+
+</div>
+</body>
+</html>
